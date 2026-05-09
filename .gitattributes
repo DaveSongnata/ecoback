@@ -1,0 +1,22 @@
+# Padrão: deixar o git decidir, mas garantir LF onde o tipo de arquivo exige.
+* text=auto eol=lf
+
+# Shell scripts e YAML PRECISAM de LF — CRLF quebra dentro de containers Linux.
+*.sh        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+Dockerfile* text eol=lf
+*.sql       text eol=lf
+
+# Específicos do Windows mantêm CRLF.
+*.ps1       text eol=crlf
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+
+# Binários — não tocar.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.pdf  binary

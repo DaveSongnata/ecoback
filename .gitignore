@@ -1,0 +1,29 @@
+# Dependências
+node_modules/
+
+# Build artifacts
+build/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editores
+.idea/
+.vscode/
+.fleet/
+.DS_Store
+
+# Sistemas
+*.swp
+*~
+
+# OS
+Thumbs.db
+
+# Env (cada subprojeto tem seu .gitignore mais específico, mas garantimos aqui também)
+.env
+.env.local
+.env.dev
+.env.production

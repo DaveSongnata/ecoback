@@ -1,0 +1,18 @@
+# Exclui o node_modules do host do build context.
+# CRÍTICO: o Dockerfile.dev faz `COPY backend/ ./` depois do npm ci. Sem este
+# ignore, o node_modules do host (não-patchado, pois vem de uma instalação
+# diferente) sobrescreveria o que o npm ci instalou no container.
+backend/node_modules
+backend/build
+backend/tmp
+backend/.env
+backend/.env.local
+
+# Não envia o storage local do dev pro build context
+backend/storage
+
+# Build contexts internos
+**/.git
+**/.idea
+**/.vscode
+**/.DS_Store
