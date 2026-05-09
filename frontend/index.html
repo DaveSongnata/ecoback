@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EcoBack — Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        EcoBack
+        <span class="muted">demo</span>
+      </div>
+      <div id="userBadge" class="user-badge hidden">
+        <span id="userEmail"></span>
+        <button id="logoutBtn" class="link">sair</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- AUTH -->
+      <section id="authView">
+        <div class="tabs">
+          <button class="tab active" data-tab="login">Entrar</button>
+          <button class="tab" data-tab="signup">Cadastrar</button>
+          <button class="tab" data-tab="forgot">Esqueci a senha</button>
+        </div>
+
+        <div id="login" class="tab-pane active">
+          <h2>Entrar</h2>
+          <form id="loginForm" class="card">
+            <label>Email <input type="email" name="email" required /></label>
+            <label>Senha <input type="password" name="password" required minlength="8" /></label>
+            <button class="primary">Entrar</button>
+          </form>
+        </div>
+
+        <div id="signup" class="tab-pane">
+          <h2>Cadastrar</h2>
+          <form id="signupForm" class="card">
+            <label>Email <input type="email" name="email" required /></label>
+            <label>Data de nascimento <input type="date" name="birth_date" required /></label>
+            <label>
+              Cidade
+              <select name="city_id" id="signupCity" required></select>
+            </label>
+            <label>Telefone <input type="tel" name="phone" placeholder="11999999999" required /></label>
+            <label>Senha <input type="password" name="password" required minlength="8" /></label>
+            <label class="file">
+              Foto de perfil (opcional)
+              <input type="file" name="profile_photo" accept="image/*" />
+            </label>
+            <button class="primary">Criar conta</button>
+          </form>
+        </div>
+
+        <div id="forgot" class="tab-pane">
+          <h2>Esqueci a senha</h2>
+          <p class="muted">Enviamos uma senha temporária para o e-mail (em dev, abre o Mailpit).</p>
+          <form id="forgotForm" class="card">
+            <label>Email <input type="email" name="email" required /></label>
+            <button class="primary">Enviar nova senha</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- APP -->
+      <section id="appView" class="hidden">
+        <div class="tabs">
+          <button class="tab active" data-tab="newOccurrence">Nova ocorrência</button>
+          <button class="tab" data-tab="myOccurrences">Minhas ocorrências</button>
+          <button class="tab" data-tab="profile">Perfil</button>
+        </div>
+
+        <div id="newOccurrence" class="tab-pane active">
+          <h2>Nova ocorrência</h2>
+          <form id="occurrenceForm" class="card">
+            <div class="grid two">
+              <label>
+                Cidade
+                <select name="city_id" id="occCity" required></select>
+              </label>
+              <label>
+                Categoria
+                <select name="category_id" id="occCat" required></select>
+              </label>
+            </div>
+            <label>CEP <input type="text" name="cep" placeholder="00000-000" required /></label>
+            <div class="grid two">
+              <label>Bairro <input type="text" name="neighborhood" required /></label>
+              <label>Rua <input type="text" name="street" required /></label>
+            </div>
+            <label>Número/complemento <input type="text" name="address" required /></label>
+            <label>Observação <textarea name="observation" rows="2"></textarea></label>
+            <label class="file">
+              Fotos (1 a 3)
+              <input type="file" name="photos" accept="image/*" multiple required />
+            </label>
+
+            <div class="coord-block">
+              <div class="row-between">
+                <strong>Coordenadas</strong>
+                <button type="button" id="useGeoBtn" class="link">usar minha localização</button>
+              </div>
+              <div id="coordList" class="coord-list"></div>
+              <div class="row-end">
+                <button type="button" id="addCoordBtn" class="ghost">+ adicionar</button>
+              </div>
+            </div>
+
+            <button class="primary">Registrar ocorrência</button>
+          </form>
+        </div>
+
+        <div id="myOccurrences" class="tab-pane">
+          <div class="row-between">
+            <h2>Minhas ocorrências</h2>
+            <button id="refreshBtn" class="ghost">recarregar</button>
+          </div>
+          <div id="occList" class="list"></div>
+        </div>
+
+        <div id="profile" class="tab-pane">
+          <h2>Meu perfil</h2>
+          <div id="profileCard" class="card profile">
+            <div class="muted">carregando...</div>
+          </div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast hidden"></div>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
