@@ -1,0 +1,15 @@
+FROM node:24-alpine
+
+WORKDIR /app
+RUN apk add --no-cache python3 make g++ tini
+
+COPY backend/package.json backend/package-lock.json ./
+# Copia scripts/ antes do npm ci porque rodamos um postinstall que mora ali.
+COPY backend/scripts ./scripts
+RUN npm ci --legacy-peer-deps
+
+COPY backend/ ./
+
+EXPOSE 3333
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "ace", "serve", "--hmr"]

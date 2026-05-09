@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecoback_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # `:z` relabela o arquivo para SELinux (Fedora/RHEL). Sem isso, o
+      # container do postgres é bloqueado mesmo rodando como root no host.
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ecoback_mailpit_dev
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "18025:8025"  # Web UI -> http://localhost:18025
+    environment:
+      MP_MAX_MESSAGES: 5000
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dev
+    container_name: ecoback_api_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    env_file:
+      - .env.dev
+    ports:
+      - "38383:3333"  # API -> http://localhost:38383
+    volumes:
+      # `:z` para o bind do código-fonte (SELinux). O volume nomeado de storage
+      # não precisa.
+      - ../backend:/app:z
+      - storage_data:/app/storage
+      - /app/node_modules
+    command: sh -c "node ace migration:run --force && node ace db:seed && node ace serve --hmr"
+
+  frontend:
+    image: nginx:alpine
+    container_name: ecoback_frontend_dev
+    restart: unless-stopped
+    ports:
+      - "48080:80"  # Front demo -> http://localhost:48080
+    volumes:
+      # `:z` para SELinux. Bind read-only com o nginx servindo os arquivos
+      # estáticos diretamente do projeto — qualquer mudança aparece no reload.
+      - ../frontend:/usr/share/nginx/html:ro,z
+
+volumes:
+  postgres_data:
+  storage_data:

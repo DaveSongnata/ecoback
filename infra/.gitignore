@@ -1,0 +1,4 @@
+# Arquivos gerados pelo setup.sh — contêm APP_KEY e segredos.
+.env
+.env.dev
+.env.local
