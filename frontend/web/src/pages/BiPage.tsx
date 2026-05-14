@@ -550,7 +550,7 @@ export default function BiPage() {
           <ChartSkeleton height={250} />
         </div>
         <DonutSkeleton />
-        <div className="animate-pulse rounded-2xl bg-shape h-[300px] lg:h-[480px]" />
+        <div className="animate-pulse rounded-2xl bg-shape h-[400px] lg:h-[700px]" />
       </div>
     )
   }
@@ -1005,7 +1005,7 @@ export default function BiPage() {
               </div>
               <div
                 ref={heatmapContainerRef}
-                className="h-[300px] lg:h-[480px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
+                className="h-[400px] lg:h-[700px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
                 style={{ background: '#F6F5F7' }}
               />
               <div className="flex items-center justify-center gap-1 mt-3">
@@ -1067,7 +1067,7 @@ export default function BiPage() {
               </div>
               <div
                 ref={areasContainerRef}
-                className="h-[300px] lg:h-[480px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
+                className="h-[400px] lg:h-[700px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
                 style={{ background: '#F6F5F7' }}
               />
               <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
