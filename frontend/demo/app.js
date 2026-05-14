@@ -218,32 +218,169 @@ function dataUrlInitials(email = '?') {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg)
 }
 
-// ---------- Occurrences ----------------------------------------------------
+// ---------- Photo upload (drag & drop + preview) -------------------------
+
+let photoFiles = [] // File objects array, max 3
+
+function renderPhotoPreviews() {
+  const container = $('#photoPreviews')
+  $('#photoCount').textContent = `${photoFiles.length}/3`
+
+  container.innerHTML = photoFiles
+    .map(
+      (_, i) => `
+      <div class="photo-preview" data-i="${i}">
+        <img src="${URL.createObjectURL(photoFiles[i])}" alt="Foto ${i + 1}" />
+        <button type="button" class="remove-photo" title="Remover">×</button>
+      </div>`
+    )
+    .join('')
+
+  $$('.remove-photo', container).forEach((btn) =>
+    btn.addEventListener('click', (e) => {
+      const idx = +e.target.closest('.photo-preview').dataset.i
+      photoFiles.splice(idx, 1)
+      renderPhotoPreviews()
+    })
+  )
+}
+
+function addPhotoFiles(files) {
+  for (const file of files) {
+    if (photoFiles.length >= 3) {
+      toast('Máximo 3 fotos', 'error')
+      break
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast(`${file.name} excede 8 MB`, 'error')
+      continue
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast(`${file.name}: formato não suportado`, 'error')
+      continue
+    }
+    photoFiles.push(file)
+  }
+  renderPhotoPreviews()
+}
+
+const dropzone = $('#photoDropzone')
+const photoInput = $('#photoInput')
+
+dropzone.addEventListener('click', () => photoInput.click())
+photoInput.addEventListener('change', (e) => {
+  addPhotoFiles(e.target.files)
+  photoInput.value = ''
+})
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault()
+  dropzone.classList.add('dragover')
+})
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'))
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault()
+  dropzone.classList.remove('dragover')
+  addPhotoFiles(e.dataTransfer.files)
+})
+
+// ---------- Coordinate map (Leaflet) --------------------------------------
 
 let coordRows = []
+let coordMap = null
+let coordMarkers = []
+let coordPolygon = null
+
+function initCoordMap() {
+  if (coordMap) return
+  // Default: Manaus, AM
+  coordMap = L.map('coordMap').setView([-3.119, -60.022], 13)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19,
+  }).addTo(coordMap)
+
+  coordMap.on('click', (e) => {
+    if (coordRows.length >= 20) return toast('Máximo 20 coordenadas', 'error')
+    coordRows.push({ lat: e.latlng.lat, lng: e.latlng.lng })
+    syncMapMarkers()
+  })
+}
+
+function syncMapMarkers() {
+  // Clear existing
+  coordMarkers.forEach((m) => coordMap.removeLayer(m))
+  coordMarkers = []
+  if (coordPolygon) {
+    coordMap.removeLayer(coordPolygon)
+    coordPolygon = null
+  }
+
+  const valid = coordRows.filter((c) => Number.isFinite(c.lat) && Number.isFinite(c.lng))
+
+  valid.forEach((c, i) => {
+    const marker = L.marker([c.lat, c.lng], { draggable: true })
+      .addTo(coordMap)
+      .bindPopup(`Ponto ${i + 1}`)
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng()
+      coordRows[i] = { lat: pos.lat, lng: pos.lng }
+      syncMapMarkers()
+    })
+    coordMarkers.push(marker)
+  })
+
+  // Draw polygon if 2+ points
+  if (valid.length >= 2) {
+    const latlngs = valid.map((c) => [c.lat, c.lng])
+    coordPolygon = L.polygon(latlngs, {
+      color: '#56d3a8',
+      fillColor: '#56d3a8',
+      fillOpacity: 0.15,
+      weight: 2,
+    }).addTo(coordMap)
+  }
+
+  // Fit bounds
+  if (valid.length > 0) {
+    const bounds = L.latLngBounds(valid.map((c) => [c.lat, c.lng]))
+    coordMap.fitBounds(bounds.pad(0.3))
+  }
+
+  // Update count
+  $('#coordCount').textContent = `${valid.length} ponto${valid.length !== 1 ? 's' : ''}`
+
+  // Render text list
+  renderCoordRows()
+}
+
 function renderCoordRows() {
   const list = $('#coordList')
+  if (coordRows.length === 0) {
+    list.innerHTML = ''
+    return
+  }
   list.innerHTML = coordRows
     .map(
       (c, i) => `
       <div class="coord-row" data-i="${i}">
-        <input type="number" step="any" placeholder="latitude" value="${c.lat ?? ''}" data-k="lat" />
-        <input type="number" step="any" placeholder="longitude" value="${c.lng ?? ''}" data-k="lng" />
+        <input type="number" step="any" placeholder="latitude" value="${c.lat?.toFixed(6) ?? ''}" data-k="lat" />
+        <input type="number" step="any" placeholder="longitude" value="${c.lng?.toFixed(6) ?? ''}" data-k="lng" />
         <button type="button" class="x" title="remover">×</button>
       </div>`
     )
     .join('')
   $$('.coord-row input', list).forEach((inp) =>
-    inp.addEventListener('input', (e) => {
+    inp.addEventListener('change', (e) => {
       const idx = +e.target.closest('.coord-row').dataset.i
       coordRows[idx][e.target.dataset.k] = e.target.value === '' ? null : Number(e.target.value)
+      syncMapMarkers()
     })
   )
   $$('.coord-row .x', list).forEach((btn) =>
     btn.addEventListener('click', (e) => {
       const idx = +e.target.closest('.coord-row').dataset.i
       coordRows.splice(idx, 1)
-      renderCoordRows()
+      syncMapMarkers()
     })
   )
 }
@@ -254,33 +391,64 @@ $('#addCoordBtn').addEventListener('click', () => {
   renderCoordRows()
 })
 
+$('#clearCoordsBtn').addEventListener('click', () => {
+  coordRows = []
+  syncMapMarkers()
+})
+
 $('#useGeoBtn').addEventListener('click', () => {
-  if (!navigator.geolocation) return toast('Geolocation não suportado', 'error')
+  if (!navigator.geolocation) return toast('Geolocalização não suportada', 'error')
+  toast('Obtendo localização...')
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      coordRows.push({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-      renderCoordRows()
-      toast('Coordenada adicionada')
+      const { latitude: lat, longitude: lng } = pos.coords
+      coordRows.push({ lat, lng })
+      coordMap.setView([lat, lng], 16)
+      syncMapMarkers()
+      toast('Localização adicionada!')
     },
-    (err) => toast(err.message, 'error')
+    (err) => toast(err.message, 'error'),
+    { enableHighAccuracy: true }
   )
 })
+
+// Init map when the newOccurrence tab is visible
+const observer = new MutationObserver(() => {
+  if ($('#newOccurrence').classList.contains('active')) {
+    setTimeout(() => {
+      initCoordMap()
+      coordMap.invalidateSize()
+    }, 100)
+  }
+})
+observer.observe($('#newOccurrence'), { attributes: true, attributeFilter: ['class'] })
+
+// ---------- Occurrence submit ---------------------------------------------
 
 $('#occurrenceForm').addEventListener('submit', async (e) => {
   e.preventDefault()
   const form = e.target
   const fd = new FormData(form)
+
+  // Photos from our managed array (not from the form's file input)
+  if (photoFiles.length === 0) return toast('Adicione pelo menos uma foto', 'error')
+  // Remove any stale file input entries
+  fd.delete('photos')
+  photoFiles.forEach((f) => fd.append('photos', f))
+
   const coords = coordRows.filter((c) => Number.isFinite(c.lat) && Number.isFinite(c.lng))
-  if (coords.length === 0) return toast('Adicione pelo menos uma coordenada', 'error')
+  if (coords.length === 0) return toast('Adicione pelo menos uma coordenada no mapa', 'error')
   fd.set('coordinates', JSON.stringify(coords))
+
   try {
     await api('/mobile/occurrences', { method: 'POST', body: fd })
     form.reset()
     coordRows = []
-    renderCoordRows()
+    photoFiles = []
+    renderPhotoPreviews()
+    syncMapMarkers()
     toast('Ocorrência registrada!')
     await loadOccurrences()
-    // Vai para a aba de listagem.
     $$('.tab', $('#appView')).find((t) => t.dataset.tab === 'myOccurrences').click()
   } catch (err) {
     toast(err.message, 'error')

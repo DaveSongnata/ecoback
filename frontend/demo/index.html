@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>EcoBack — Demo</title>
     <meta name="api-base" content="https://ecoback.treent.com.br" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -95,19 +97,36 @@
             </div>
             <label>Número/complemento <input type="text" name="address" required /></label>
             <label>Observação <textarea name="observation" rows="2"></textarea></label>
-            <label class="file">
-              Fotos (1 a 3)
-              <input type="file" name="photos" accept="image/*" multiple required />
-            </label>
+            <div class="photo-block">
+              <div class="row-between">
+                <strong>Fotos (1 a 3)</strong>
+                <span class="muted" id="photoCount">0/3</span>
+              </div>
+              <div id="photoDropzone" class="dropzone">
+                <div class="dropzone-content">
+                  <span class="dropzone-icon">📷</span>
+                  <span>Arraste fotos aqui ou <strong>clique para selecionar</strong></span>
+                  <span class="muted" style="font-size:12px">JPG, PNG ou WebP · máx. 8 MB cada</span>
+                </div>
+                <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none" />
+              </div>
+              <div id="photoPreviews" class="photo-previews"></div>
+            </div>
 
             <div class="coord-block">
               <div class="row-between">
-                <strong>Coordenadas</strong>
-                <button type="button" id="useGeoBtn" class="link">usar minha localização</button>
+                <strong>Localização</strong>
+                <button type="button" id="useGeoBtn" class="link">📍 usar minha localização</button>
               </div>
+              <p class="muted" style="font-size:12px;margin:0">Clique no mapa para adicionar pontos. Com 2+ pontos, forma a área afetada.</p>
+              <div id="coordMap" style="height:260px;border-radius:10px;overflow:hidden;border:1px solid var(--border)"></div>
               <div id="coordList" class="coord-list"></div>
-              <div class="row-end">
-                <button type="button" id="addCoordBtn" class="ghost">+ adicionar</button>
+              <div class="row-between" style="gap:8px">
+                <span class="muted" style="font-size:12px" id="coordCount">0 pontos</span>
+                <div style="display:flex;gap:8px">
+                  <button type="button" id="clearCoordsBtn" class="ghost" style="font-size:12px;color:var(--danger)">limpar</button>
+                  <button type="button" id="addCoordBtn" class="ghost" style="font-size:12px">+ manual</button>
+                </div>
               </div>
             </div>
 
