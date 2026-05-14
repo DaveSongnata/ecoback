@@ -179,4 +179,70 @@ export default class BiController {
       })),
     })
   }
+
+  async areas({ request, response }: HttpContext) {
+    const status = request.qs().status
+    const limit = Math.min(Number(request.qs().limit) || 2000, 5000)
+
+    // Fetch occurrences that have 2+ coordinates (polygons)
+    const occurrenceIds = await db
+      .from('occurrence_coordinates')
+      .select('occurrence_id')
+      .groupBy('occurrence_id')
+      .havingRaw('count(*) >= 2')
+      .limit(limit)
+
+    if (occurrenceIds.length === 0) {
+      return response.send({ data: [] })
+    }
+
+    const ids = occurrenceIds.map((r) => r.occurrence_id)
+
+    const query = db
+      .from('occurrences as o')
+      .whereIn('o.id', ids)
+      .select('o.id', 'o.protocol', 'o.status', 'o.neighborhood', 'o.category_id')
+
+    if (status) query.where('o.status', status)
+
+    const occurrences = await query
+
+    // Fetch all coordinates for these occurrences
+    const coords = await db
+      .from('occurrence_coordinates')
+      .whereIn('occurrence_id', occurrences.map((o) => o.id))
+      .select('occurrence_id', 'latitude', 'longitude', 'position')
+      .orderBy('occurrence_id')
+      .orderBy('position')
+
+    // Group coordinates by occurrence
+    const coordMap = new Map<string, { lat: number; lng: number }[]>()
+    for (const c of coords) {
+      if (!coordMap.has(c.occurrence_id)) coordMap.set(c.occurrence_id, [])
+      coordMap.get(c.occurrence_id)!.push({
+        lat: Number(c.latitude),
+        lng: Number(c.longitude),
+      })
+    }
+
+    // Get category names
+    const categoryIds = [...new Set(occurrences.map((o) => o.category_id).filter(Boolean))]
+    const categories = categoryIds.length > 0
+      ? await db.from('occurrence_categories').whereIn('id', categoryIds).select('id', 'name')
+      : []
+    const catMap = new Map(categories.map((c) => [c.id, c.name]))
+
+    return response.send({
+      data: occurrences
+        .filter((o) => coordMap.has(o.id))
+        .map((o) => ({
+          id: o.id,
+          protocol: o.protocol,
+          status: o.status,
+          neighborhood: o.neighborhood,
+          category: catMap.get(o.category_id) ?? null,
+          coordinates: coordMap.get(o.id)!,
+        })),
+    })
+  }
 }

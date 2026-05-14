@@ -95,6 +95,7 @@ router
             router.get('/bi/by-period', [BiController, 'byPeriod'])
             router.get('/bi/response-time', [BiController, 'responseTime'])
             router.get('/bi/heatmap', [BiController, 'heatmap'])
+            router.get('/bi/areas', [BiController, 'areas'])
           })
           .use(middleware.hasPermission({ permissions: ['bi:view'] }))
       })

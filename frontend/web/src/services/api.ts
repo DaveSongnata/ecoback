@@ -234,6 +234,21 @@ export async function getBiHeatmap(precision?: number): Promise<HeatmapPoint[]> 
   return res.data
 }
 
+export interface AreaOccurrence {
+  id: string
+  protocol: string
+  status: string
+  neighborhood: string
+  category: string | null
+  coordinates: { lat: number; lng: number }[]
+}
+
+export async function getBiAreas(status?: string): Promise<AreaOccurrence[]> {
+  const qs = status ? `?status=${status}` : ''
+  const res = await api<{ data: AreaOccurrence[] }>(`/web/bi/areas${qs}`)
+  return res.data
+}
+
 /* ── Export ───────────────────────────────────────────────── */
 
 export async function exportPdf(

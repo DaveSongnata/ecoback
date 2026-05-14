@@ -33,7 +33,9 @@ import {
   getBiByPeriod,
   getBiResponseTime,
   getBiHeatmap,
+  getBiAreas,
 } from '@/services/api'
+import type { AreaOccurrence } from '@/services/api'
 import type {
   BiOverview,
   BiCategoryRow,
@@ -277,6 +279,11 @@ export default function BiPage() {
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([])
   const [heatmapPrecision, setHeatmapPrecision] = useState(3)
   const heatmapContainerRef = useRef<HTMLDivElement>(null)
+  const [areasData, setAreasData] = useState<AreaOccurrence[]>([])
+  const [areasFilter, setAreasFilter] = useState('')
+  const areasContainerRef = useRef<HTMLDivElement>(null)
+  const areasCardRef = useRef<HTMLDivElement>(null)
+  const areasMapRef = useRef<any>(null)
   const heatmapCardRef = useRef<HTMLDivElement>(null)
   const heatmapMapRef = useRef<any>(null)
   const heatLayerRef = useRef<any>(null)
@@ -420,15 +427,112 @@ export default function BiPage() {
     return () => document.removeEventListener('fullscreenchange', onFsChange)
   }, [])
 
-  // Cleanup map on unmount
+  // Cleanup maps on unmount
   useEffect(() => {
     return () => {
-      if (heatmapMapRef.current) {
-        heatmapMapRef.current.remove()
-        heatmapMapRef.current = null
-      }
+      if (heatmapMapRef.current) { heatmapMapRef.current.remove(); heatmapMapRef.current = null }
+      if (areasMapRef.current) { areasMapRef.current.remove(); areasMapRef.current = null }
     }
   }, [])
+
+  // ── Areas map: fetch ──────────────────────────────────
+  useEffect(() => {
+    if (loading) return
+    let cancelled = false
+    getBiAreas(areasFilter || undefined).then((data) => {
+      if (!cancelled) setAreasData(data)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [loading, areasFilter])
+
+  // ── Areas map: render ─────────────────────────────────
+  const STATUS_AREA_COLORS: Record<string, string> = {
+    em_analise: '#F59E0B',
+    aprovada: '#0EA5E9',
+    cancelada: '#EF4444',
+    concluida: '#10B981',
+  }
+
+  useEffect(() => {
+    if (loading || !areasContainerRef.current) return
+    if (typeof L === 'undefined') return
+
+    // Init map once
+    if (!areasMapRef.current) {
+      const map = L.map(areasContainerRef.current, {
+        center: [-3.1, -60.02],
+        zoom: 12,
+        scrollWheelZoom: true,
+        attributionControl: false,
+      })
+      areasMapRef.current = map
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+      }).addTo(map)
+      setTimeout(() => map.invalidateSize(), 200)
+    }
+
+    const map = areasMapRef.current
+
+    // Clear previous layers (keep tile layer)
+    map.eachLayer((layer: any) => {
+      if (layer._url === undefined && !layer._tiles) map.removeLayer(layer)
+    })
+
+    // Render polygons
+    const allBounds: any[] = []
+    for (const area of areasData) {
+      if (area.coordinates.length < 2) continue
+      const latlngs = area.coordinates.map((c) => [c.lat, c.lng] as [number, number])
+      const color = STATUS_AREA_COLORS[area.status] || '#155B5B'
+
+      const polygon = L.polygon(latlngs, {
+        color,
+        weight: 2,
+        fillColor: color,
+        fillOpacity: 0.25,
+      }).addTo(map)
+
+      polygon.bindPopup(`
+        <div style="font-family:Inter,system-ui,sans-serif;font-size:13px;min-width:160px">
+          <strong style="color:${color}">#${area.protocol}</strong><br/>
+          <span style="color:#666">${area.neighborhood}</span><br/>
+          ${area.category ? `<span style="color:#999">${area.category}</span><br/>` : ''}
+          <span style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:11px;background:${color}22;color:${color};border:1px solid ${color}44">${area.status.replace('_', ' ')}</span>
+        </div>
+      `)
+
+      latlngs.forEach((ll) => allBounds.push(ll))
+    }
+
+    // Also render single-point occurrences as markers
+    for (const area of areasData) {
+      if (area.coordinates.length !== 1) continue
+      const c = area.coordinates[0]
+      const color = STATUS_AREA_COLORS[area.status] || '#155B5B'
+      L.circleMarker([c.lat, c.lng], {
+        radius: 6, color, fillColor: color, fillOpacity: 0.5, weight: 1,
+      }).addTo(map).bindPopup(`<strong>#${area.protocol}</strong><br/>${area.neighborhood}`)
+      allBounds.push([c.lat, c.lng])
+    }
+
+    if (allBounds.length > 0) {
+      map.fitBounds(L.latLngBounds(allBounds).pad(0.05))
+    }
+  }, [loading, areasData])
+
+  // Areas fullscreen
+  function toggleAreasFullscreen() {
+    const el = areasCardRef.current
+    if (!el) return
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      el.requestFullscreen().then(() => {
+        setTimeout(() => areasMapRef.current?.invalidateSize(), 200)
+      })
+    }
+  }
 
   /* ── Loading skeleton ─────────────────────────────────── */
 
@@ -913,6 +1017,75 @@ export default function BiPage() {
                   <div className="flex-1" style={{ background: '#EF4444' }} />
                 </div>
                 <span className="text-[10px] text-gray-300">Alto</span>
+              </div>
+            </GlassCard>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Section 6: Areas Map ──────────────────────────── */}
+      {!loading && (
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <div ref={areasCardRef} className="bg-background">
+            <GlassCard className="p-4 lg:p-6 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-display text-base lg:text-lg font-semibold tracking-tight text-primary-dark">
+                    Mapa de Áreas Reportadas
+                  </h3>
+                  <p className="text-xs lg:text-sm text-gray-300">
+                    {areasData.length > 0
+                      ? `${areasData.length.toLocaleString('pt-BR')} áreas com polígono`
+                      : 'Nenhuma área com polígono registrada'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={areasFilter}
+                    onChange={(e) => setAreasFilter(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-white border border-shape text-xs text-primary-dark focus:outline-none focus:ring-2 focus:ring-primary-light/30"
+                  >
+                    <option value="">Todos os status</option>
+                    <option value="em_analise">Em análise</option>
+                    <option value="aprovada">Aprovada</option>
+                    <option value="cancelada">Cancelada</option>
+                    <option value="concluida">Concluída</option>
+                  </select>
+                  <button
+                    onClick={toggleAreasFullscreen}
+                    className="p-2 rounded-xl hover:bg-white/70 transition-colors text-gray-300 hover:text-primary-dark"
+                    title="Tela cheia"
+                  >
+                    <Maximize2 className="size-5" />
+                  </button>
+                </div>
+              </div>
+              <div
+                ref={areasContainerRef}
+                className="h-[300px] lg:h-[480px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
+                style={{ background: '#F6F5F7' }}
+              />
+              <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full" style={{ background: '#F59E0B' }} />
+                  <span className="text-[10px] text-gray-300">Em análise</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full" style={{ background: '#0EA5E9' }} />
+                  <span className="text-[10px] text-gray-300">Aprovada</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full" style={{ background: '#EF4444' }} />
+                  <span className="text-[10px] text-gray-300">Cancelada</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="size-3 rounded-full" style={{ background: '#10B981' }} />
+                  <span className="text-[10px] text-gray-300">Concluída</span>
+                </div>
               </div>
             </GlassCard>
           </div>
