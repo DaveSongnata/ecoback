@@ -5,7 +5,7 @@ import { randomBytes } from 'node:crypto'
 import User from '#models/user'
 import storageService from '#services/storage_service'
 import { forgotPasswordValidator, loginValidator, signupValidator } from '#validators/auth'
-import { serializeUserMinimal } from '#helpers/serializers'
+import { serializeUser, serializeUserMinimal } from '#helpers/serializers'
 import { apiError } from '#helpers/api_response'
 import PasswordResetNotification from '#mails/password_reset_notification'
 
@@ -87,10 +87,12 @@ export default class AuthController {
 
     try {
       const user = await User.verifyCredentials(email, password)
+      await user.load('city')
       const token = await User.accessTokens.create(user)
       return response.send({
         success: true,
         token: tokenPayload(token),
+        user: serializeUser(user),
       })
     } catch {
       return response.status(401).send(apiError('Invalid credentials', 'E_INVALID_CREDENTIALS'))
