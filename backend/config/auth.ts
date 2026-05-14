@@ -12,6 +12,12 @@ const authConfig = defineConfig({
         model: () => import('#models/user'),
       }),
     }),
+    web: tokensGuard({
+      provider: tokensUserProvider({
+        tokens: 'accessTokens',
+        model: () => import('#models/staff'),
+      }),
+    }),
   },
 })
 

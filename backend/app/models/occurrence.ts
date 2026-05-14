@@ -40,7 +40,7 @@ export default class Occurrence extends BaseModel {
   declare observation: string | null
 
   @column()
-  declare status: 'em_analise' | 'aprovada' | 'cancelada'
+  declare status: 'em_analise' | 'aprovada' | 'cancelada' | 'concluida'
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

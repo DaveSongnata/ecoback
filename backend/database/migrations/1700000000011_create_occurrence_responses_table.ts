@@ -17,6 +17,8 @@ export default class extends BaseSchema {
       table.date('scheduled_date').nullable()
       table.string('scheduled_time', 10).nullable()
       table.string('team_name', 120).notNullable()
+      table.uuid('staff_id').nullable()
+      table.text('rejection_reason').nullable()
       table.timestamp('created_at', { useTz: true }).notNullable()
       table.timestamp('updated_at', { useTz: true }).nullable()
     })

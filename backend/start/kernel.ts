@@ -17,4 +17,6 @@ router.use([
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
   ownerOnly: () => import('#middleware/owner_only_middleware'),
+  staffAuth: () => import('#middleware/staff_auth_middleware'),
+  hasPermission: () => import('#middleware/has_permission_middleware'),
 })

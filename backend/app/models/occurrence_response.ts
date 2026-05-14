@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Occurrence from '#models/occurrence'
+import Staff from '#models/staff'
 
 export default class OccurrenceResponse extends BaseModel {
   static table = 'occurrence_responses'
@@ -25,6 +26,12 @@ export default class OccurrenceResponse extends BaseModel {
   @column()
   declare teamName: string
 
+  @column()
+  declare staffId: string | null
+
+  @column()
+  declare rejectionReason: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -33,6 +40,9 @@ export default class OccurrenceResponse extends BaseModel {
 
   @belongsTo(() => Occurrence)
   declare occurrence: BelongsTo<typeof Occurrence>
+
+  @belongsTo(() => Staff)
+  declare staff: BelongsTo<typeof Staff>
 
   @beforeCreate()
   static assignUuid(row: OccurrenceResponse) {

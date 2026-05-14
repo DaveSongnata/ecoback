@@ -48,6 +48,8 @@ export function serializeOccurrence(occurrence: Occurrence) {
         scheduled_date: occurrence.response.scheduledDate ?? null,
         scheduled_time: occurrence.response.scheduledTime ?? null,
         team_name: occurrence.response.teamName,
+        staff_id: occurrence.response.staffId ?? null,
+        rejection_reason: occurrence.response.rejectionReason ?? null,
         responded_at: occurrence.response.updatedAt?.toISO() ?? occurrence.response.createdAt?.toISO() ?? null,
       }
     : null
