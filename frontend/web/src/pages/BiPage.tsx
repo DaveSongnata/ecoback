@@ -371,21 +371,26 @@ export default function BiPage() {
     }
 
     if (heatmapData.length > 0) {
-      const maxWeight = Math.max(...heatmapData.map(p => p.weight), 1)
-      const points = heatmapData.map(p => [p.lat, p.lng, p.weight / maxWeight])
+      // Logarithmic normalization: makes proportional differences visible
+      // instead of linear (where 50/500 = 10% = invisible)
+      // log(50)/log(500) = 63% — now clearly "medium-high"
+      const logWeights = heatmapData.map(p => Math.log1p(p.weight))
+      const maxLog = Math.max(...logWeights, 1)
+      const points = heatmapData.map((p, i) => [p.lat, p.lng, logWeights[i] / maxLog])
 
       // @ts-ignore
       heatLayerRef.current = L.heatLayer(points, {
-        radius: 25,
-        blur: 15,
+        radius: 28,
+        blur: 18,
         maxZoom: 17,
-        max: 1,
+        max: 0.85,
+        minOpacity: 0.15,
         gradient: {
-          0.2: '#155B5B',
-          0.4: '#268C8C',
-          0.6: '#579D67',
-          0.8: '#F59E0B',
-          1.0: '#EF4444',
+          0.15: '#155B5B',
+          0.35: '#268C8C',
+          0.50: '#579D67',
+          0.70: '#F59E0B',
+          0.85: '#EF4444',
         },
       }).addTo(heatmapMapRef.current)
     }
