@@ -42,8 +42,19 @@ export function serializeOccurrence(occurrence: Occurrence) {
       lng: Number(c.longitude),
     }))
 
+  const responseData = occurrence.response
+    ? {
+        notice: occurrence.response.notice,
+        scheduled_date: occurrence.response.scheduledDate ?? null,
+        scheduled_time: occurrence.response.scheduledTime ?? null,
+        team_name: occurrence.response.teamName,
+        responded_at: occurrence.response.updatedAt?.toISO() ?? occurrence.response.createdAt?.toISO() ?? null,
+      }
+    : null
+
   return {
     id: occurrence.id,
+    status: occurrence.status,
     city: occurrence.city
       ? {
           id: occurrence.city.id,
@@ -65,6 +76,7 @@ export function serializeOccurrence(occurrence: Occurrence) {
     observation: occurrence.observation,
     photos,
     coordinates,
+    response: responseData,
     created_at: occurrence.createdAt?.toISO() ?? null,
     updated_at: occurrence.updatedAt?.toISO() ?? null,
   }

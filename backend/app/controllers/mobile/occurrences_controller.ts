@@ -131,7 +131,7 @@ export default class OccurrencesController {
     }
 
     await occurrence.load((loader) => {
-      loader.load('city').load('category').load('photos').load('coordinates')
+      loader.load('city').load('category').load('photos').load('coordinates').load('response')
     })
 
     return response.status(201).send(serializeOccurrence(occurrence))
@@ -152,6 +152,7 @@ export default class OccurrencesController {
       .preload('category')
       .preload('photos')
       .preload('coordinates')
+      .preload('response')
       .orderBy('created_at', 'desc')
       .paginate(pageNum, perPage)
 
@@ -174,6 +175,7 @@ export default class OccurrencesController {
       .preload('category')
       .preload('photos')
       .preload('coordinates')
+      .preload('response')
       .first()
 
     if (!occurrence) {

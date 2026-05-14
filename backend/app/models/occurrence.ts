@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { DateTime } from 'luxon'
-import { BaseModel, beforeCreate, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, beforeCreate, belongsTo, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import City from '#models/city'
 import User from '#models/user'
 import OccurrenceCategory from '#models/occurrence_category'
 import OccurrencePhoto from '#models/occurrence_photo'
 import OccurrenceCoordinate from '#models/occurrence_coordinate'
+import OccurrenceResponse from '#models/occurrence_response'
 
 export default class Occurrence extends BaseModel {
   static table = 'occurrences'
@@ -38,6 +39,9 @@ export default class Occurrence extends BaseModel {
   @column()
   declare observation: string | null
 
+  @column()
+  declare status: 'em_analise' | 'aprovada' | 'cancelada'
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -58,6 +62,9 @@ export default class Occurrence extends BaseModel {
 
   @hasMany(() => OccurrenceCoordinate, { foreignKey: 'occurrenceId' })
   declare coordinates: HasMany<typeof OccurrenceCoordinate>
+
+  @hasOne(() => OccurrenceResponse, { foreignKey: 'occurrenceId' })
+  declare response: HasOne<typeof OccurrenceResponse>
 
   @beforeCreate()
   static assignUuid(row: Occurrence) {
