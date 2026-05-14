@@ -1005,8 +1005,8 @@ export default function BiPage() {
               </div>
               <div
                 ref={heatmapContainerRef}
-                className="h-[400px] lg:h-[700px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
-                style={{ background: '#F6F5F7' }}
+                className="rounded-xl overflow-hidden"
+                style={{ background: '#F6F5F7', height: 'min(700px, 70vh)' }}
               />
               <div className="flex items-center justify-center gap-1 mt-3">
                 <span className="text-[10px] text-gray-300">Baixo</span>
@@ -1067,8 +1067,8 @@ export default function BiPage() {
               </div>
               <div
                 ref={areasContainerRef}
-                className="h-[400px] lg:h-[700px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
-                style={{ background: '#F6F5F7' }}
+                className="rounded-xl overflow-hidden"
+                style={{ background: '#F6F5F7', height: 'min(700px, 70vh)' }}
               />
               <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
                 <div className="flex items-center gap-1.5">
