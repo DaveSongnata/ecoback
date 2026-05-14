@@ -63,6 +63,22 @@ services:
       # estáticos diretamente do projeto — qualquer mudança aparece no reload.
       - ../frontend:/usr/share/nginx/html:ro,z
 
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web.dev
+    container_name: ecoback_web_dev
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"   # Painel web -> http://localhost:5173
+    volumes:
+      - ../frontend/web:/app:z
+      - /app/node_modules
+    environment:
+      VITE_API_URL: http://api:3333
+
 volumes:
   postgres_data:
   storage_data:

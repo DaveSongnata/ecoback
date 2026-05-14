@@ -1,4 +1,4 @@
-# Production compose: API only.
+# Production compose: API + Web panel.
 # DB lives on Supabase, uploads live on Cloudflare R2 — both are reached
 # via env vars sourced from a sibling .env file.
 services:
@@ -17,6 +17,23 @@ services:
       - '3333:3333'
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:3333/ || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+    container_name: ecoback_web_prod
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '5180:80'   # Painel web -> http://localhost:5180
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:80/ || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
