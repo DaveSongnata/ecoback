@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   BarChart3,
@@ -31,6 +31,7 @@ import {
   getBiByNeighborhood,
   getBiByPeriod,
   getBiResponseTime,
+  getBiHeatmap,
 } from '@/services/api'
 import type {
   BiOverview,
@@ -38,7 +39,10 @@ import type {
   BiNeighborhoodRow,
   BiPeriodRow,
   BiResponseTimeRow,
+  HeatmapPoint,
 } from '@/types'
+
+declare const L: any
 
 /* ── Color constants ────────────────────────────────────── */
 
@@ -269,18 +273,22 @@ export default function BiPage() {
   const [byNeighborhood, setByNeighborhood] = useState<BiNeighborhoodRow[]>([])
   const [byPeriod, setByPeriod] = useState<BiPeriodRow[]>([])
   const [responseTime, setResponseTime] = useState<BiResponseTimeRow[]>([])
+  const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([])
+  const heatmapContainerRef = useRef<HTMLDivElement>(null)
+  const heatmapMapRef = useRef<any>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAll() {
       try {
-        const [ov, cat, neigh, per, resp] = await Promise.all([
+        const [ov, cat, neigh, per, resp, heat] = await Promise.all([
           getBiOverview(),
           getBiByCategory(),
           getBiByNeighborhood(),
           getBiByPeriod(),
           getBiResponseTime(),
+          getBiHeatmap(),
         ])
 
         if (cancelled) return
@@ -290,6 +298,7 @@ export default function BiPage() {
         setByNeighborhood(neigh)
         setByPeriod(per)
         setResponseTime(resp)
+        setHeatmapData(heat)
       } catch (err) {
         console.error('Failed to load BI data', err)
       } finally {
@@ -300,6 +309,65 @@ export default function BiPage() {
     fetchAll()
     return () => { cancelled = true }
   }, [])
+
+  // Heatmap Leaflet effect
+  useEffect(() => {
+    if (loading || !heatmapData.length || !heatmapContainerRef.current) return
+    if (typeof L === 'undefined') return
+
+    // Clean up previous
+    if (heatmapMapRef.current) {
+      heatmapMapRef.current.remove()
+      heatmapMapRef.current = null
+    }
+
+    // Center on Manaus
+    const map = L.map(heatmapContainerRef.current, {
+      center: [-3.119, -60.022],
+      zoom: 12,
+      scrollWheelZoom: true,
+      attributionControl: false,
+    })
+    heatmapMapRef.current = map
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(map)
+
+    // Build heatmap data: [lat, lng, intensity]
+    const maxWeight = Math.max(...heatmapData.map(p => p.weight), 1)
+    const points = heatmapData.map(p => [p.lat, p.lng, p.weight / maxWeight])
+
+    // @ts-ignore - leaflet.heat plugin
+    L.heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      max: 1,
+      gradient: {
+        0.2: '#155B5B',
+        0.4: '#268C8C',
+        0.6: '#579D67',
+        0.8: '#F59E0B',
+        1.0: '#EF4444',
+      },
+    }).addTo(map)
+
+    // Fit bounds if we have data
+    if (heatmapData.length > 0) {
+      const bounds = L.latLngBounds(heatmapData.map(p => [p.lat, p.lng]))
+      map.fitBounds(bounds.pad(0.1))
+    }
+
+    setTimeout(() => map.invalidateSize(), 200)
+
+    return () => {
+      if (heatmapMapRef.current) {
+        heatmapMapRef.current.remove()
+        heatmapMapRef.current = null
+      }
+    }
+  }, [loading, heatmapData])
 
   /* ── Loading skeleton ─────────────────────────────────── */
 
@@ -316,6 +384,7 @@ export default function BiPage() {
           <ChartSkeleton height={250} />
         </div>
         <DonutSkeleton />
+        <div className="animate-pulse rounded-2xl bg-shape h-[300px] lg:h-[480px]" />
       </div>
     )
   }
@@ -737,6 +806,42 @@ export default function BiPage() {
               <DonutLegend data={statusDonutData} />
             </GlassCard>
           </motion.div>
+        </motion.div>
+      )}
+
+      {/* ── Section 5: Heatmap ─────────────────────────── */}
+      {!loading && heatmapData.length > 0 && (
+        <motion.div
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <GlassCard className="p-4 lg:p-6">
+            <div className="mb-4">
+              <h3 className="font-display text-base lg:text-lg font-semibold tracking-tight text-primary-dark">
+                Mapa de Calor
+              </h3>
+              <p className="text-xs lg:text-sm text-gray-300">
+                Concentração de ocorrências por região — {heatmapData.length.toLocaleString('pt-BR')} áreas mapeadas
+              </p>
+            </div>
+            <div
+              ref={heatmapContainerRef}
+              className="h-[300px] lg:h-[480px] rounded-xl overflow-hidden"
+              style={{ background: '#0A2E2E' }}
+            />
+            <div className="flex items-center justify-center gap-1 mt-3">
+              <span className="text-[10px] text-gray-300">Baixo</span>
+              <div className="flex h-2 w-32 rounded-full overflow-hidden">
+                <div className="flex-1" style={{ background: '#155B5B' }} />
+                <div className="flex-1" style={{ background: '#268C8C' }} />
+                <div className="flex-1" style={{ background: '#579D67' }} />
+                <div className="flex-1" style={{ background: '#F59E0B' }} />
+                <div className="flex-1" style={{ background: '#EF4444' }} />
+              </div>
+              <span className="text-[10px] text-gray-300">Alto</span>
+            </div>
+          </GlassCard>
         </motion.div>
       )}
     </div>

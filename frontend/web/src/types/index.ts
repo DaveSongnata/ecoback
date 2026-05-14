@@ -97,7 +97,7 @@ export interface BiResponseTimeRow {
 export interface HeatmapPoint {
   lat: number
   lng: number
-  status: OccurrenceStatus
+  weight: number
 }
 
 /* ── Pagination ──────────────────────────────────────────── */

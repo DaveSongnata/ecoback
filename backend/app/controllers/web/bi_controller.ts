@@ -154,18 +154,28 @@ export default class BiController {
     })
   }
 
-  async heatmap({ response }: HttpContext) {
+  async heatmap({ request, response }: HttpContext) {
+    // Grid precision: 3 decimal places ≈ 110m cells
+    // Aggregates millions of points into a few thousand cells
+    const precision = Number(request.qs().precision) || 3
+    const clampedPrecision = Math.min(Math.max(precision, 2), 5)
+
     const rows = await db
       .from('occurrence_coordinates as c')
       .join('occurrences as o', 'c.occurrence_id', 'o.id')
-      .select('c.latitude', 'c.longitude', 'o.status')
       .where('c.position', 1)
+      .select(
+        db.raw(`ROUND(c.latitude::numeric, ${clampedPrecision}) as lat`),
+        db.raw(`ROUND(c.longitude::numeric, ${clampedPrecision}) as lng`),
+        db.raw(`count(*)::int as weight`)
+      )
+      .groupByRaw(`ROUND(c.latitude::numeric, ${clampedPrecision}), ROUND(c.longitude::numeric, ${clampedPrecision})`)
 
     return response.send({
       data: rows.map((r) => ({
-        lat: Number(r.latitude),
-        lng: Number(r.longitude),
-        status: r.status,
+        lat: Number(r.lat),
+        lng: Number(r.lng),
+        weight: r.weight,
       })),
     })
   }
