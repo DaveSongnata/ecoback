@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Timer,
   Maximize2,
-  Minimize2,
 } from 'lucide-react'
 import {
   LineChart,
@@ -276,9 +275,9 @@ export default function BiPage() {
   const [byPeriod, setByPeriod] = useState<BiPeriodRow[]>([])
   const [responseTime, setResponseTime] = useState<BiResponseTimeRow[]>([])
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>([])
-  const [heatmapFullscreen, setHeatmapFullscreen] = useState(false)
   const [heatmapPrecision, setHeatmapPrecision] = useState(3)
   const heatmapContainerRef = useRef<HTMLDivElement>(null)
+  const heatmapCardRef = useRef<HTMLDivElement>(null)
   const heatmapMapRef = useRef<any>(null)
   const heatLayerRef = useRef<any>(null)
 
@@ -394,12 +393,27 @@ export default function BiPage() {
     return () => {}
   }, [loading, heatmapData])
 
-  // Fullscreen: resize map when toggling
-  useEffect(() => {
-    if (heatmapMapRef.current) {
-      setTimeout(() => heatmapMapRef.current.invalidateSize(), 100)
+  // Fullscreen via native browser API
+  function toggleHeatmapFullscreen() {
+    const el = heatmapCardRef.current
+    if (!el) return
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      el.requestFullscreen().then(() => {
+        setTimeout(() => heatmapMapRef.current?.invalidateSize(), 200)
+      })
     }
-  }, [heatmapFullscreen])
+  }
+
+  // Resize map when fullscreen changes (native event)
+  useEffect(() => {
+    function onFsChange() {
+      setTimeout(() => heatmapMapRef.current?.invalidateSize(), 200)
+    }
+    document.addEventListener('fullscreenchange', onFsChange)
+    return () => document.removeEventListener('fullscreenchange', onFsChange)
+  }, [])
 
   // Cleanup map on unmount
   useEffect(() => {
@@ -857,47 +871,46 @@ export default function BiPage() {
           variants={cardVariants}
           initial="hidden"
           animate="visible"
-          className={heatmapFullscreen ? 'fixed inset-0 z-50 flex flex-col bg-background' : ''}
         >
-          <GlassCard className={heatmapFullscreen ? 'flex-1 flex flex-col rounded-none' : 'p-4 lg:p-6'}>
-            <div className={`flex items-center justify-between ${heatmapFullscreen ? 'p-4' : 'mb-4'}`}>
-              <div>
-                <h3 className="font-display text-base lg:text-lg font-semibold tracking-tight text-primary-dark">
-                  Mapa de Calor
-                </h3>
-                <p className="text-xs lg:text-sm text-gray-300">
-                  {heatmapData.length > 0
-                    ? `${heatmapData.length.toLocaleString('pt-BR')} áreas · precisão ${['~1km', '~110m', '~11m', '~1m'][heatmapPrecision - 2] ?? '?'}`
-                    : 'Sem dados ainda — registre ocorrências para ver o mapa'}
-                </p>
+          <div ref={heatmapCardRef} className="bg-background">
+            <GlassCard className="p-4 lg:p-6 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-display text-base lg:text-lg font-semibold tracking-tight text-primary-dark">
+                    Mapa de Calor
+                  </h3>
+                  <p className="text-xs lg:text-sm text-gray-300">
+                    {heatmapData.length > 0
+                      ? `${heatmapData.length.toLocaleString('pt-BR')} áreas · precisão ${['~1km', '~110m', '~11m', '~1m'][heatmapPrecision - 2] ?? '?'}`
+                      : 'Sem dados ainda — registre ocorrências para ver o mapa'}
+                  </p>
+                </div>
+                <button
+                  onClick={toggleHeatmapFullscreen}
+                  className="p-2 rounded-xl hover:bg-white/70 transition-colors text-gray-300 hover:text-primary-dark"
+                  title="Tela cheia"
+                >
+                  <Maximize2 className="size-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setHeatmapFullscreen((f) => !f)}
-                className="p-2 rounded-xl hover:bg-white/70 transition-colors text-gray-300 hover:text-primary-dark"
-                title={heatmapFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
-              >
-                {heatmapFullscreen ? <Minimize2 className="size-5" /> : <Maximize2 className="size-5" />}
-              </button>
-            </div>
-            <div
-              ref={heatmapContainerRef}
-              className={heatmapFullscreen
-                ? 'flex-1 min-h-0'
-                : 'h-[300px] lg:h-[480px] rounded-xl overflow-hidden'}
-              style={{ background: '#F6F5F7' }}
-            />
-            <div className={`flex items-center justify-center gap-1 ${heatmapFullscreen ? 'py-3' : 'mt-3'}`}>
-              <span className="text-[10px] text-gray-300">Baixo</span>
-              <div className="flex h-2 w-32 rounded-full overflow-hidden">
-                <div className="flex-1" style={{ background: '#155B5B' }} />
-                <div className="flex-1" style={{ background: '#268C8C' }} />
-                <div className="flex-1" style={{ background: '#579D67' }} />
-                <div className="flex-1" style={{ background: '#F59E0B' }} />
-                <div className="flex-1" style={{ background: '#EF4444' }} />
+              <div
+                ref={heatmapContainerRef}
+                className="h-[300px] lg:h-[480px] flex-1 min-h-[300px] rounded-xl overflow-hidden"
+                style={{ background: '#F6F5F7' }}
+              />
+              <div className="flex items-center justify-center gap-1 mt-3">
+                <span className="text-[10px] text-gray-300">Baixo</span>
+                <div className="flex h-2 w-32 rounded-full overflow-hidden">
+                  <div className="flex-1" style={{ background: '#155B5B' }} />
+                  <div className="flex-1" style={{ background: '#268C8C' }} />
+                  <div className="flex-1" style={{ background: '#579D67' }} />
+                  <div className="flex-1" style={{ background: '#F59E0B' }} />
+                  <div className="flex-1" style={{ background: '#EF4444' }} />
+                </div>
+                <span className="text-[10px] text-gray-300">Alto</span>
               </div>
-              <span className="text-[10px] text-gray-300">Alto</span>
-            </div>
-          </GlassCard>
+            </GlassCard>
+          </div>
         </motion.div>
       )}
     </div>
