@@ -1,8 +1,9 @@
+import { useCallback, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
-/* ── Route → title mapping ──────────────────────────────── */
+/* ── Route -> title mapping ─────────────────────────────── */
 
 const routeTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -25,15 +26,19 @@ function resolveTitle(pathname: string): string {
 export function AppLayout() {
   const { pathname } = useLocation()
   const title = resolveTitle(pathname)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const handleOpenSidebar = useCallback(() => setSidebarOpen(true), [])
+  const handleCloseSidebar = useCallback(() => setSidebarOpen(false), [])
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={handleCloseSidebar} />
 
-      <main className="flex-1 flex flex-col ml-[260px]">
-        <TopBar title={title} />
+      <main className="flex-1 flex flex-col lg:ml-[260px]">
+        <TopBar title={title} onMenuClick={handleOpenSidebar} />
 
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>
       </main>

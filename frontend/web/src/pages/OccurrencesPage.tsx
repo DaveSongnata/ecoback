@@ -100,7 +100,7 @@ function DetailPanel({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="w-full max-w-lg h-full overflow-y-auto bg-background shadow-elevated"
+        className="w-full max-w-full lg:max-w-lg h-full overflow-y-auto bg-background shadow-elevated"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -500,8 +500,8 @@ export default function OccurrencesPage() {
       className="space-y-6"
     >
       {/* Filters bar */}
-      <GlassCard className="p-5">
-        <div className="flex flex-wrap items-end gap-3">
+      <GlassCard className="p-4 lg:p-5">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:flex lg:flex-wrap lg:items-end gap-3">
           {/* Status */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-400">
@@ -513,7 +513,7 @@ export default function OccurrencesPage() {
                 updateFilter('status', e.target.value)
               }
               className={cn(
-                'px-4 py-2.5 rounded-xl bg-white border border-shape',
+                'w-full lg:w-auto px-4 py-2.5 rounded-xl bg-white border border-shape',
                 'text-primary-dark text-sm',
                 'focus:outline-none focus:ring-2 focus:ring-primary-light/30 focus:border-primary-light',
                 'transition-all duration-200',
@@ -538,7 +538,7 @@ export default function OccurrencesPage() {
                 updateFilter('category', e.target.value)
               }
               className={cn(
-                'px-4 py-2.5 rounded-xl bg-white border border-shape',
+                'w-full lg:w-auto px-4 py-2.5 rounded-xl bg-white border border-shape',
                 'text-primary-dark text-sm',
                 'focus:outline-none focus:ring-2 focus:ring-primary-light/30 focus:border-primary-light',
                 'transition-all duration-200',
@@ -565,7 +565,7 @@ export default function OccurrencesPage() {
                 placeholder="Buscar bairro..."
                 onChange={(e) => handleNeighborhoodChange(e.target.value)}
                 className={cn(
-                  'pl-9 pr-4 py-2.5 rounded-xl bg-white border border-shape',
+                  'w-full lg:w-auto pl-9 pr-4 py-2.5 rounded-xl bg-white border border-shape',
                   'text-primary-dark placeholder:text-gray-100 text-sm',
                   'focus:outline-none focus:ring-2 focus:ring-primary-light/30 focus:border-primary-light',
                   'transition-all duration-200',
@@ -586,7 +586,7 @@ export default function OccurrencesPage() {
                 updateFilter('date_from', e.target.value)
               }
               className={cn(
-                'px-4 py-2.5 rounded-xl bg-white border border-shape',
+                'w-full lg:w-auto px-4 py-2.5 rounded-xl bg-white border border-shape',
                 'text-primary-dark text-sm',
                 'focus:outline-none focus:ring-2 focus:ring-primary-light/30 focus:border-primary-light',
                 'transition-all duration-200',
@@ -606,7 +606,7 @@ export default function OccurrencesPage() {
                 updateFilter('date_to', e.target.value)
               }
               className={cn(
-                'px-4 py-2.5 rounded-xl bg-white border border-shape',
+                'w-full lg:w-auto px-4 py-2.5 rounded-xl bg-white border border-shape',
                 'text-primary-dark text-sm',
                 'focus:outline-none focus:ring-2 focus:ring-primary-light/30 focus:border-primary-light',
                 'transition-all duration-200',
@@ -614,27 +614,30 @@ export default function OccurrencesPage() {
             />
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Spacer - only on desktop */}
+          <div className="hidden lg:block flex-1" />
 
           {/* Export PDF */}
           {canExport && (
-            <Button
-              variant="ghost"
-              size="sm"
-              loading={exporting}
-              disabled={selectedIds.size === 0}
-              onClick={handleExport}
-            >
-              <Download className="size-4" />
-              Exportar PDF
-            </Button>
+            <div className="xs:col-span-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={exporting}
+                disabled={selectedIds.size === 0}
+                onClick={handleExport}
+                className="w-full lg:w-auto"
+              >
+                <Download className="size-4" />
+                Exportar PDF
+              </Button>
+            </div>
           )}
         </div>
       </GlassCard>
 
-      {/* Table */}
-      <GlassCard>
+      {/* Desktop Table */}
+      <GlassCard className="hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -756,7 +759,7 @@ export default function OccurrencesPage() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Desktop Pagination */}
         {!loading && meta.total > 0 && (
           <div className="flex items-center justify-between border-t border-shape px-5 py-4">
             <span className="text-sm text-gray-200">
@@ -791,6 +794,122 @@ export default function OccurrencesPage() {
           </div>
         )}
       </GlassCard>
+
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-3">
+        {/* Mobile select all */}
+        {canExport && occurrences.length > 0 && !loading && (
+          <div className="flex items-center gap-2 px-1">
+            <input
+              type="checkbox"
+              checked={
+                occurrences.length > 0 &&
+                selectedIds.size === occurrences.length
+              }
+              onChange={toggleSelectAll}
+              className="size-4 rounded border-shape text-primary-base focus:ring-primary-light/30 cursor-pointer"
+            />
+            <span className="text-sm text-gray-300">Selecionar todos</span>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin text-primary-base" />
+          </div>
+        ) : occurrences.length === 0 ? (
+          <div className="py-16 text-center text-gray-200">
+            Nenhuma ocorrencia encontrada.
+          </div>
+        ) : (
+          occurrences.map((occ) => (
+            <GlassCard key={occ.id} className="p-4 relative">
+              {/* Export checkbox */}
+              {canExport && (
+                <div className="absolute top-3 right-3 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(occ.id)}
+                    onChange={() => toggleSelection(occ.id)}
+                    className="size-4 rounded border-shape text-primary-base focus:ring-primary-light/30 cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {/* Status + Category row */}
+              <div className="flex items-center gap-2 mb-2">
+                <StatusBadge status={occ.status} />
+                <span className="text-xs text-gray-300">
+                  {occ.category?.name ?? '-'}
+                </span>
+              </div>
+
+              {/* Location title */}
+              <p className="text-sm font-medium text-primary-dark mb-1.5 pr-6">
+                {[occ.neighborhood, occ.street]
+                  .filter(Boolean)
+                  .join(' - ') || 'Sem endereco'}
+              </p>
+
+              {/* Date + Actions row */}
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-xs text-gray-200">
+                  {formatDate(occ.created_at)}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSelectedOccurrence(occ)}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-primary-base/10 text-primary-base transition-colors"
+                    title="Ver detalhes"
+                  >
+                    <Eye className="size-5" />
+                  </button>
+                  {occ.status === 'aprovada' && (
+                    <button
+                      onClick={() => handleInlineComplete(occ.id)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
+                      title="Marcar como concluida"
+                    >
+                      <CheckCircle2 className="size-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </GlassCard>
+          ))
+        )}
+
+        {/* Mobile Pagination */}
+        {!loading && meta.total > 0 && (
+          <div className="flex items-center justify-between px-1 py-3">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={meta.page <= 1}
+              onClick={() => goToPage(meta.page - 1)}
+              className="min-h-[44px]"
+            >
+              <ChevronLeft className="size-4" />
+              Anterior
+            </Button>
+
+            <span className="px-3 py-1.5 text-sm font-medium text-gray-400 bg-white/50 rounded-lg">
+              {meta.page} / {totalPages}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={meta.page >= totalPages}
+              onClick={() => goToPage(meta.page + 1)}
+              className="min-h-[44px]"
+            >
+              Proximo
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Detail panel overlay */}
       <AnimatePresence>

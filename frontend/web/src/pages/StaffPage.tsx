@@ -130,7 +130,7 @@ function ModalOverlay({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-0 lg:p-4"
       onClick={onClose}
     >
       <motion.div
@@ -138,6 +138,7 @@ function ModalOverlay({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full lg:w-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -193,7 +194,7 @@ function StaffFormModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <GlassCard className="w-full max-w-md bg-background/95 backdrop-blur-2xl">
+      <GlassCard className="w-full max-w-full lg:max-w-md bg-background/95 backdrop-blur-2xl fixed inset-0 lg:inset-auto lg:relative overflow-y-auto rounded-none lg:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-shape">
           <h2 className="text-lg font-semibold text-primary-dark">
@@ -201,7 +202,7 @@ function StaffFormModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-white/70 transition-colors"
+            className="p-2 rounded-xl hover:bg-white/70 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <X className="size-5 text-gray-300" />
           </button>
@@ -354,7 +355,7 @@ function DeleteConfirmModal({
 
   return (
     <ModalOverlay onClose={onClose}>
-      <GlassCard className="w-full max-w-sm bg-background/95 backdrop-blur-2xl p-6 space-y-5">
+      <GlassCard className="w-full max-w-[calc(100%-2rem)] lg:max-w-sm bg-background/95 backdrop-blur-2xl p-6 space-y-5">
         <div className="text-center space-y-2">
           <div className="mx-auto size-12 rounded-full bg-red-50 flex items-center justify-center">
             <Trash2 className="size-5 text-red-500" />
@@ -456,11 +457,11 @@ function StaffCard({
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1 border-t border-shape/50">
-          <Button variant="ghost" size="sm" onClick={onEdit}>
+          <Button variant="ghost" size="sm" onClick={onEdit} className="min-h-[44px]">
             <Pencil className="size-3.5" />
             Editar
           </Button>
-          <Button variant="danger" size="sm" onClick={onDelete}>
+          <Button variant="danger" size="sm" onClick={onDelete} className="min-h-[44px]">
             <Trash2 className="size-3.5" />
             Excluir
           </Button>
@@ -576,11 +577,11 @@ export default function StaffPage() {
       className="space-y-6"
     >
       {/* Top section */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-300">Gerencie os operadores do sistema</p>
-        <Button variant="primary" onClick={openCreate}>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm lg:text-base text-gray-300">Gerencie os operadores do sistema</p>
+        <Button variant="primary" onClick={openCreate} className="shrink-0">
           <UserPlus className="size-4" />
-          Novo operador
+          <span className="hidden xs:inline">Novo operador</span>
         </Button>
       </div>
 

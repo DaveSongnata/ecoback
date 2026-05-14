@@ -248,13 +248,15 @@ export async function exportPdf(
 /* ── Lookups ─────────────────────────────────────────────── */
 
 export async function getCities(): Promise<{ id: string; name: string }[]> {
-  return api<{ id: string; name: string }[]>('/web/cities')
+  const res = await api<{ data: { id: string; name: string }[] }>('/web/cities')
+  return res.data
 }
 
 export async function getCategories(): Promise<
   { id: string; slug: string; name: string }[]
 > {
-  return api<{ id: string; slug: string; name: string }[]>(
+  const res = await api<{ data: { id: string; slug: string; name: string }[] }>(
     '/web/occurrence-categories',
   )
+  return res.data
 }

@@ -33,8 +33,8 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
-      {/* Background decoration orbs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Background decoration orbs - hidden on mobile for performance */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden hidden lg:block">
         <div className="absolute -top-20 right-0 h-[300px] w-[300px] rounded-full bg-primary-light/20 blur-3xl" />
         <div className="absolute -bottom-20 left-0 h-[300px] w-[300px] rounded-full bg-primary-clin/15 blur-3xl" />
       </div>
@@ -46,7 +46,7 @@ export default function LoginPage() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="relative w-full max-w-md"
       >
-        <GlassCard className="p-8">
+        <GlassCard className="p-6 lg:p-8">
           {/* Logo */}
           <div className="mb-2 text-center">
             <h1 className="font-display text-3xl tracking-tighter text-primary-light">

@@ -168,16 +168,16 @@ function KpiSkeleton() {
   )
 }
 
-function ChartSkeleton({ height = 300 }: { height?: number }) {
+function ChartSkeleton({ height = 300, mobileHeight }: { height?: number; mobileHeight?: number }) {
   return (
-    <GlassCard className="p-6">
+    <GlassCard className="p-4 lg:p-6">
       <div className="mb-4 space-y-2">
         <div className="h-5 w-36 animate-pulse rounded-lg bg-shape" />
         <div className="h-4 w-48 animate-pulse rounded-lg bg-shape" />
       </div>
       <div
         className="animate-pulse rounded-xl bg-shape"
-        style={{ height }}
+        style={{ height: mobileHeight ?? height }}
       />
     </GlassCard>
   )
@@ -226,14 +226,14 @@ interface KpiCardProps {
 
 function KpiCard({ icon, value, label, iconBg }: KpiCardProps) {
   return (
-    <GlassCard hoverable className="p-5">
-      <div className="flex items-center gap-4">
-        <div className={`rounded-xl p-2.5 ${iconBg}`}>{icon}</div>
+    <GlassCard hoverable className="p-4 lg:p-5">
+      <div className="flex items-center gap-3 lg:gap-4">
+        <div className={`rounded-xl p-2 lg:p-2.5 ${iconBg}`}>{icon}</div>
         <div>
-          <p className="font-display text-2xl font-bold tracking-tight text-primary-dark">
+          <p className="font-display text-xl lg:text-2xl font-bold tracking-tight text-primary-dark">
             {value}
           </p>
-          <p className="text-sm text-gray-300">{label}</p>
+          <p className="text-xs lg:text-sm text-gray-300">{label}</p>
         </div>
       </div>
     </GlassCard>
@@ -413,14 +413,15 @@ export default function BiPage() {
       >
         {/* Line Chart: Evolucao Temporal */}
         <motion.div variants={cardVariants}>
-          <GlassCard className="p-6">
+          <GlassCard className="p-4 lg:p-6">
             <div className="mb-4">
-              <h3 className="font-display text-lg font-semibold text-primary-dark">
+              <h3 className="font-display text-base lg:text-lg font-semibold text-primary-dark">
                 Evolucao Temporal
               </h3>
-              <p className="text-sm text-gray-300">Ocorrencias por mes</p>
+              <p className="text-xs lg:text-sm text-gray-300">Ocorrencias por mes</p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <div className="h-[200px] lg:h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={periodData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -428,14 +429,15 @@ export default function BiPage() {
                 />
                 <XAxis
                   dataKey="period"
-                  tick={{ fontSize: 12, fill: '#666666' }}
+                  tick={{ fontSize: 10, fill: '#666666' }}
                   axisLine={{ stroke: '#EDE9F2' }}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#666666' }}
+                  tick={{ fontSize: 10, fill: '#666666' }}
                   axisLine={false}
                   tickLine={false}
+                  width={30}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend
@@ -473,21 +475,23 @@ export default function BiPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </GlassCard>
         </motion.div>
 
         {/* Bar Chart: Por Categoria */}
         <motion.div variants={cardVariants}>
-          <GlassCard className="p-6">
+          <GlassCard className="p-4 lg:p-6">
             <div className="mb-4">
-              <h3 className="font-display text-lg font-semibold text-primary-dark">
+              <h3 className="font-display text-base lg:text-lg font-semibold text-primary-dark">
                 Por Categoria
               </h3>
-              <p className="text-sm text-gray-300">
+              <p className="text-xs lg:text-sm text-gray-300">
                 Total e concluidas por categoria
               </p>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <div className="h-[200px] lg:h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -496,18 +500,19 @@ export default function BiPage() {
                 />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 11, fill: '#666666' }}
+                  tick={{ fontSize: 9, fill: '#666666' }}
                   axisLine={{ stroke: '#EDE9F2' }}
                   tickLine={false}
                   interval={0}
                   angle={-20}
                   textAnchor="end"
-                  height={60}
+                  height={50}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#666666' }}
+                  tick={{ fontSize: 10, fill: '#666666' }}
                   axisLine={false}
                   tickLine={false}
+                  width={30}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Legend
@@ -531,6 +536,7 @@ export default function BiPage() {
                 />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </GlassCard>
         </motion.div>
       </motion.div>
@@ -544,12 +550,12 @@ export default function BiPage() {
       >
         {/* Ranking por Bairro */}
         <motion.div variants={cardVariants} className="lg:col-span-2">
-          <GlassCard className="p-6">
+          <GlassCard className="p-4 lg:p-6">
             <div className="mb-5">
-              <h3 className="font-display text-lg font-semibold text-primary-dark">
+              <h3 className="font-display text-base lg:text-lg font-semibold text-primary-dark">
                 Ranking por Bairro
               </h3>
-              <p className="text-sm text-gray-300">
+              <p className="text-xs lg:text-sm text-gray-300">
                 Top 10 bairros com mais ocorrencias
               </p>
             </div>
@@ -562,12 +568,12 @@ export default function BiPage() {
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 * i, duration: 0.35 }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-2 lg:gap-3"
                   >
-                    <span className="w-6 text-sm font-bold text-gray-200">
+                    <span className="w-5 lg:w-6 text-xs lg:text-sm font-bold text-gray-200">
                       {i + 1}
                     </span>
-                    <span className="w-32 shrink-0 truncate text-sm font-medium text-primary-dark">
+                    <span className="w-20 xs:w-24 lg:w-32 shrink-0 truncate text-xs lg:text-sm font-medium text-primary-dark">
                       {row.neighborhood}
                     </span>
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-shape">
@@ -600,14 +606,15 @@ export default function BiPage() {
 
         {/* Tempo de Resposta */}
         <motion.div variants={cardVariants}>
-          <GlassCard className="p-6">
+          <GlassCard className="p-4 lg:p-6">
             <div className="mb-4">
-              <h3 className="font-display text-lg font-semibold text-primary-dark">
+              <h3 className="font-display text-base lg:text-lg font-semibold text-primary-dark">
                 Tempo de Resposta
               </h3>
-              <p className="text-sm text-gray-300">Media em horas por mes</p>
+              <p className="text-xs lg:text-sm text-gray-300">Media em horas por mes</p>
             </div>
-            <ResponsiveContainer width="100%" height={250}>
+            <div className="h-[180px] lg:h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={responseTimeData}>
                 <defs>
                   <linearGradient
@@ -635,15 +642,16 @@ export default function BiPage() {
                 />
                 <XAxis
                   dataKey="period"
-                  tick={{ fontSize: 11, fill: '#666666' }}
+                  tick={{ fontSize: 9, fill: '#666666' }}
                   axisLine={{ stroke: '#EDE9F2' }}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#666666' }}
+                  tick={{ fontSize: 10, fill: '#666666' }}
                   axisLine={false}
                   tickLine={false}
                   unit="h"
+                  width={35}
                 />
                 <Tooltip content={<ResponseTimeTooltip />} />
                 <Area
@@ -663,6 +671,7 @@ export default function BiPage() {
                 />
               </AreaChart>
             </ResponsiveContainer>
+            </div>
           </GlassCard>
         </motion.div>
       </motion.div>
@@ -676,12 +685,12 @@ export default function BiPage() {
           className="grid grid-cols-1 gap-6 lg:grid-cols-3"
         >
           <motion.div variants={cardVariants}>
-            <GlassCard className="p-6">
-              <h3 className="mb-4 font-display text-lg font-semibold text-primary-dark">
+            <GlassCard className="p-4 lg:p-6">
+              <h3 className="mb-4 font-display text-base lg:text-lg font-semibold text-primary-dark">
                 Distribuicao por Status
               </h3>
               <div className="relative">
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={statusDonutData}

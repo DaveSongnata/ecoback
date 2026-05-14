@@ -228,7 +228,7 @@ export default function TriagePage() {
   /* ── Render ─────────────────────────────────────────────── */
 
   return (
-    <div className="flex min-h-[60vh] items-start justify-center px-4 py-8">
+    <div className="flex min-h-[60vh] items-start justify-center px-2 lg:px-4 py-4 lg:py-8">
       <div className="w-full max-w-[600px]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -246,7 +246,7 @@ export default function TriagePage() {
                     src={currentPhoto.url}
                     alt={`Foto ${photoIndex + 1}`}
                     className={cn(
-                      'h-64 w-full rounded-t-2xl object-cover',
+                      'h-48 lg:h-64 w-full rounded-t-2xl object-cover',
                       photos.length > 1 && 'cursor-pointer',
                     )}
                     onClick={handlePhotoClick}
@@ -263,7 +263,7 @@ export default function TriagePage() {
                             setPhotoIndex(i)
                           }}
                           className={cn(
-                            'size-2 rounded-full transition-all duration-200',
+                            'size-2.5 rounded-full transition-all duration-200',
                             i === photoIndex
                               ? 'scale-125 bg-white'
                               : 'bg-white/50 hover:bg-white/75',
@@ -277,7 +277,7 @@ export default function TriagePage() {
               )}
 
               {/* ── Info section ──────────────────────────── */}
-              <div className="space-y-3 p-6">
+              <div className="space-y-3 p-4 lg:p-6">
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={occurrence.status} />
@@ -337,14 +337,14 @@ export default function TriagePage() {
               </div>
 
               {/* ── Action section ────────────────────────── */}
-              <div className="border-t border-shape p-6">
+              <div className="border-t border-shape p-4 lg:p-6">
                 {/* Initial view: action buttons */}
                 {actionMode === 'view' && (
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center justify-center gap-3 lg:gap-4">
                     <Button
                       variant="danger"
                       size="lg"
-                      className="rounded-full"
+                      className="rounded-full min-h-[48px] min-w-[48px]"
                       onClick={() => handleActionClick('reject')}
                     >
                       <X className="size-5" />
@@ -352,7 +352,7 @@ export default function TriagePage() {
 
                     <Button
                       variant="outline"
-                      className="rounded-full"
+                      className="rounded-full min-h-[44px] min-w-[44px]"
                       onClick={handleSkip}
                     >
                       <ArrowRight className="size-5" />
@@ -361,7 +361,7 @@ export default function TriagePage() {
                     <Button
                       variant="primary"
                       size="lg"
-                      className="rounded-full"
+                      className="rounded-full min-h-[48px] min-w-[48px]"
                       onClick={() => handleActionClick('approve')}
                     >
                       <Check className="size-5" />
