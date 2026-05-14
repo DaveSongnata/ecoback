@@ -52,16 +52,14 @@ services:
       - /app/node_modules
     command: sh -c "node ace migration:run --force && node ace db:seed && node ace serve --hmr"
 
-  frontend:
+  demo:
     image: nginx:alpine
-    container_name: ecoback_frontend_dev
+    container_name: ecoback_demo_dev
     restart: unless-stopped
     ports:
-      - "48080:80"  # Front demo -> http://localhost:48080
+      - "48080:80"  # Demo mobile -> http://localhost:48080
     volumes:
-      # `:z` para SELinux. Bind read-only com o nginx servindo os arquivos
-      # estáticos diretamente do projeto — qualquer mudança aparece no reload.
-      - ../frontend:/usr/share/nginx/html:ro,z
+      - ../frontend/demo:/usr/share/nginx/html:ro,z
 
   web:
     build:
