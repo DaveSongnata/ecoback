@@ -88,6 +88,8 @@ export default function TriagePage() {
   const [submitting, setSubmitting] = useState(false)
   const [exitDirection, setExitDirection] = useState<ExitDirection>(null)
   const [cardKey, setCardKey] = useState(0)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
 
   const [approveForm, setApproveForm] = useState<ApproveFormData>({
     notice: '',
@@ -279,8 +281,6 @@ export default function TriagePage() {
   const photos = occurrence.photos.sort((a, b) => a.position - b.position)
   const currentPhoto = photos[photoIndex]
   const coord = occurrence.coordinates[0] ?? null
-  const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<any>(null)
 
   /* ── Render ─────────────────────────────────────────────── */
 
