@@ -12,6 +12,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '0.0.0.0',
+    allowedHosts: ['ecoweb.treent.com.br'],
     proxy: {
       '/web': {
         target: process.env.VITE_API_URL || 'http://localhost:38383',

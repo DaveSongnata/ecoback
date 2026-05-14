@@ -43,7 +43,7 @@ router
 // ── Web routes (prefeitura) ────────────────────────────────
 router
   .group(() => {
-    router.post('/login', [WebAuthController, 'login']).use(authThrottle)
+    router.post('/login', [WebAuthController, 'login']).as('web.login').use(authThrottle)
 
     router
       .group(() => {
@@ -51,8 +51,8 @@ router
         router.get('/me', [WebAuthController, 'me'])
 
         // Lookups (any authenticated staff)
-        router.get('/cities', [CitiesController, 'index'])
-        router.get('/occurrence-categories', [OccurrenceCategoriesController, 'index'])
+        router.get('/cities', [CitiesController, 'index']).as('web.cities.index')
+        router.get('/occurrence-categories', [OccurrenceCategoriesController, 'index']).as('web.categories.index')
 
         // Staff management (requires staff:manage)
         router
