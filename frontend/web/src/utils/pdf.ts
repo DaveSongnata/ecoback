@@ -36,7 +36,7 @@ export function generateOccurrencesPdf(occurrences: Occurrence[]) {
 
   // Table
   const tableData = occurrences.map((o) => [
-    o.id.slice(0, 8) + '...',
+    o.id.slice(0, 8).toUpperCase(),
     STATUS_LABELS[o.status] ?? o.status,
     o.category?.name ?? '-',
     o.neighborhood ?? '-',

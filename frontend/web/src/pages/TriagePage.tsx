@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowRight,
   Check,
   CheckCircle2,
   Loader2,
-  MapPin,
   X,
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -19,6 +18,8 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+
+declare const L: any
 
 /* ── Types ──────────────────────────────────────────────── */
 
@@ -123,6 +124,60 @@ export default function TriagePage() {
     fetchNext()
   }, [fetchNext])
 
+  /* ── Leaflet map for coordinates ───────────────────────── */
+
+  useEffect(() => {
+    if (!mapContainerRef.current || !occurrence?.coordinates?.length) return
+    if (typeof L === 'undefined') return
+
+    // Clean up previous map instance
+    if (mapRef.current) {
+      mapRef.current.remove()
+      mapRef.current = null
+    }
+
+    const coords = occurrence.coordinates.sort((a, b) => a.position - b.position)
+    const center: [number, number] = [coords[0].lat, coords[0].lng]
+
+    const map = L.map(mapContainerRef.current, {
+      center,
+      zoom: coords.length >= 2 ? 15 : 16,
+      scrollWheelZoom: false,
+      attributionControl: false,
+    })
+    mapRef.current = map
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map)
+
+    const latLngs: [number, number][] = coords.map((c) => [c.lat, c.lng] as [number, number])
+
+    latLngs.forEach((ll) => {
+      L.marker(ll).addTo(map)
+    })
+
+    if (latLngs.length >= 2) {
+      L.polygon(latLngs, {
+        color: '#155B5B',
+        weight: 2,
+        fillColor: '#155B5B',
+        fillOpacity: 0.15,
+      }).addTo(map)
+      map.fitBounds(L.latLngBounds(latLngs).pad(0.2))
+    }
+
+    // Force a size recalc after the container is painted
+    setTimeout(() => map.invalidateSize(), 100)
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [occurrence])
+
   /* ── Actions ────────────────────────────────────────────── */
 
   function handleActionClick(mode: 'approve' | 'reject') {
@@ -224,6 +279,8 @@ export default function TriagePage() {
   const photos = occurrence.photos.sort((a, b) => a.position - b.position)
   const currentPhoto = photos[photoIndex]
   const coord = occurrence.coordinates[0] ?? null
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<any>(null)
 
   /* ── Render ─────────────────────────────────────────────── */
 
@@ -320,14 +377,9 @@ export default function TriagePage() {
                   </div>
                 )}
 
-                {/* Coordinates */}
-                {coord && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-200">
-                    <MapPin className="size-3" />
-                    <span className="font-mono">
-                      {coord.lat.toFixed(6)}, {coord.lng.toFixed(6)}
-                    </span>
-                  </div>
+                {/* Coordinates map */}
+                {occurrence.coordinates.length > 0 && (
+                  <div className="rounded-xl overflow-hidden h-40 lg:h-48" ref={mapContainerRef} />
                 )}
 
                 {/* Created at */}

@@ -24,6 +24,8 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 
+declare const L: any
+
 /* ── Helpers ──────────────────────────────────────────────── */
 
 function formatDate(iso: string): string {
@@ -72,6 +74,58 @@ function DetailPanel({
   const [completing, setCompleting] = useState(false)
   const [showCompleteForm, setShowCompleteForm] = useState(false)
   const [completeNotice, setCompleteNotice] = useState('')
+  const detailMapRef = useRef<HTMLDivElement>(null)
+  const detailMapInstanceRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (!detailMapRef.current || !occurrence.coordinates?.length) return
+    if (typeof L === 'undefined') return
+
+    if (detailMapInstanceRef.current) {
+      detailMapInstanceRef.current.remove()
+      detailMapInstanceRef.current = null
+    }
+
+    const coords = occurrence.coordinates.sort((a, b) => a.position - b.position)
+    const center: [number, number] = [coords[0].lat, coords[0].lng]
+
+    const map = L.map(detailMapRef.current, {
+      center,
+      zoom: coords.length >= 2 ? 15 : 16,
+      scrollWheelZoom: false,
+      attributionControl: false,
+    })
+    detailMapInstanceRef.current = map
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map)
+
+    const latLngs: [number, number][] = coords.map((c) => [c.lat, c.lng] as [number, number])
+
+    latLngs.forEach((ll) => {
+      L.marker(ll).addTo(map)
+    })
+
+    if (latLngs.length >= 2) {
+      L.polygon(latLngs, {
+        color: '#155B5B',
+        weight: 2,
+        fillColor: '#155B5B',
+        fillOpacity: 0.15,
+      }).addTo(map)
+      map.fitBounds(L.latLngBounds(latLngs).pad(0.2))
+    }
+
+    setTimeout(() => map.invalidateSize(), 100)
+
+    return () => {
+      if (detailMapInstanceRef.current) {
+        detailMapInstanceRef.current.remove()
+        detailMapInstanceRef.current = null
+      }
+    }
+  }, [occurrence])
 
   async function handleComplete() {
     setCompleting(true)
@@ -217,6 +271,11 @@ function DetailPanel({
               </div>
             </dl>
           </GlassCard>
+
+          {/* Coordinates map */}
+          {occurrence.coordinates?.length > 0 && (
+            <div className="rounded-xl overflow-hidden h-40 lg:h-48" ref={detailMapRef} />
+          )}
 
           {/* Response info */}
           {occurrence.response && (
@@ -398,7 +457,7 @@ export default function OccurrencesPage() {
           per_page: 20,
         }
         if (filters.status) params.status = filters.status
-        if (filters.category) params.category = filters.category
+        if (filters.category) params.category_id = filters.category
         if (filters.neighborhood)
           params.neighborhood = filters.neighborhood
         if (filters.date_from) params.date_from = filters.date_from
@@ -546,7 +605,7 @@ export default function OccurrencesPage() {
             >
               <option value="">Todas</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.slug}>
+                <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
               ))}
