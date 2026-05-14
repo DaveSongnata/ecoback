@@ -228,8 +228,9 @@ export async function getBiResponseTime(): Promise<BiResponseTimeRow[]> {
   return res.data
 }
 
-export async function getBiHeatmap(): Promise<HeatmapPoint[]> {
-  const res = await api<{ data: HeatmapPoint[] }>('/web/bi/heatmap')
+export async function getBiHeatmap(precision?: number): Promise<HeatmapPoint[]> {
+  const qs = precision ? `?precision=${precision}` : ''
+  const res = await api<{ data: HeatmapPoint[] }>(`/web/bi/heatmap${qs}`)
   return res.data
 }
 
