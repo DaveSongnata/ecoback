@@ -60,6 +60,8 @@ function activateTabs(scope) {
       $$('.tab', scope).forEach((b) => b.classList.toggle('active', b === btn))
       const target = btn.dataset.tab
       $$('.tab-pane', scope).forEach((p) => p.classList.toggle('active', p.id === target))
+      // Ensure map renders when switching to the occurrence tab
+      if (target === 'newOccurrence' && typeof ensureMap === 'function') ensureMap()
     })
   })
 }
@@ -179,6 +181,7 @@ async function afterLogin() {
   await loadReferenceData()
   await loadProfile()
   await loadOccurrences()
+  ensureMap()
 }
 
 // ---------- Profile --------------------------------------------------------
@@ -403,7 +406,9 @@ $('#useGeoBtn').addEventListener('click', () => {
     (pos) => {
       const { latitude: lat, longitude: lng } = pos.coords
       coordRows.push({ lat, lng })
+      initCoordMap()
       coordMap.setView([lat, lng], 16)
+      coordMap.invalidateSize()
       syncMapMarkers()
       toast('Localização adicionada!')
     },
@@ -412,15 +417,17 @@ $('#useGeoBtn').addEventListener('click', () => {
   )
 })
 
-// Init map when the newOccurrence tab is visible
-const observer = new MutationObserver(() => {
-  if ($('#newOccurrence').classList.contains('active')) {
-    setTimeout(() => {
-      initCoordMap()
-      coordMap.invalidateSize()
-    }, 100)
-  }
-})
+// Init map when the newOccurrence tab becomes visible
+function ensureMap() {
+  if (!$('#newOccurrence').classList.contains('active')) return
+  setTimeout(() => {
+    initCoordMap()
+    if (coordMap) coordMap.invalidateSize()
+  }, 150)
+}
+
+// Watch for tab switches
+const observer = new MutationObserver(ensureMap)
 observer.observe($('#newOccurrence'), { attributes: true, attributeFilter: ['class'] })
 
 // ---------- Occurrence submit ---------------------------------------------
