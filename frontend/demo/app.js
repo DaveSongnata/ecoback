@@ -1,6 +1,6 @@
-// Configurável via meta tag, fallback pra localhost:38383 (default do compose dev).
+// Configurável via meta tag, fallback pra host de produção.
 const API_BASE =
-  document.querySelector('meta[name="api-base"]')?.content || 'http://localhost:38383'
+  document.querySelector('meta[name="api-base"]')?.content || 'https://ecoback.treent.com.br'
 
 const $ = (s, root = document) => root.querySelector(s)
 const $$ = (s, root = document) => [...root.querySelectorAll(s)]
