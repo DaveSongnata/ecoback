@@ -56,6 +56,7 @@ export function serializeOccurrence(occurrence: Occurrence) {
 
   return {
     id: occurrence.id,
+    protocol: occurrence.protocol,
     status: occurrence.status,
     city: occurrence.city
       ? {

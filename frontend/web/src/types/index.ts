@@ -37,6 +37,7 @@ export interface OccurrenceResponse {
 
 export interface Occurrence {
   id: string
+  protocol: string
   status: OccurrenceStatus
   city: { id: number; name: string; ibge_code: string } | null
   category: { id: number; slug: string; name: string } | null

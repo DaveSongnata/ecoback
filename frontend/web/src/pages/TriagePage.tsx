@@ -335,6 +335,9 @@ export default function TriagePage() {
 
               {/* ── Info section ──────────────────────────── */}
               <div className="space-y-3 p-4 lg:p-6">
+                {/* Protocol */}
+                <span className="font-mono text-sm font-semibold text-primary-base">#{occurrence.protocol}</span>
+
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={occurrence.status} />

@@ -36,7 +36,7 @@ export function generateOccurrencesPdf(occurrences: Occurrence[]) {
 
   // Table
   const tableData = occurrences.map((o) => [
-    o.id.slice(0, 8).toUpperCase(),
+    o.protocol,
     STATUS_LABELS[o.status] ?? o.status,
     o.category?.name ?? '-',
     o.neighborhood ?? '-',
@@ -51,7 +51,7 @@ export function generateOccurrencesPdf(occurrences: Occurrence[]) {
   autoTable(doc, {
     startY: 41,
     head: [[
-      'ID',
+      'Protocolo',
       'Status',
       'Categoria',
       'Bairro',

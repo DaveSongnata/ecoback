@@ -161,7 +161,7 @@ function DetailPanel({
         <div className="sticky top-0 z-10 flex items-center justify-between bg-background/90 backdrop-blur-xl border-b border-shape px-6 py-4">
           <div className="flex items-center gap-3">
             <StatusBadge status={occurrence.status} />
-            <span className="text-sm text-gray-200">#{occurrence.id}</span>
+            <span className="font-mono text-sm font-semibold text-primary-base">#{occurrence.protocol}</span>
           </div>
           <button
             onClick={onClose}
@@ -715,6 +715,9 @@ export default function OccurrencesPage() {
                   </th>
                 )}
                 <th className="text-left text-xs font-medium text-gray-200 uppercase tracking-wider py-3 px-4">
+                  Protocolo
+                </th>
+                <th className="text-left text-xs font-medium text-gray-200 uppercase tracking-wider py-3 px-4">
                   Status
                 </th>
                 <th className="text-left text-xs font-medium text-gray-200 uppercase tracking-wider py-3 px-4">
@@ -738,7 +741,7 @@ export default function OccurrencesPage() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan={canExport ? 7 : 6}
+                    colSpan={canExport ? 8 : 7}
                     className="py-16 text-center"
                   >
                     <Loader2 className="size-6 animate-spin text-primary-base mx-auto" />
@@ -747,7 +750,7 @@ export default function OccurrencesPage() {
               ) : occurrences.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={canExport ? 7 : 6}
+                    colSpan={canExport ? 8 : 7}
                     className="py-16 text-center text-gray-200"
                   >
                     Nenhuma ocorrencia encontrada.
@@ -772,6 +775,7 @@ export default function OccurrencesPage() {
                         />
                       </td>
                     )}
+                    <td className="py-3 px-4 font-mono text-sm font-semibold text-primary-base">#{occ.protocol}</td>
                     <td className="py-3 px-4">
                       <StatusBadge status={occ.status} />
                     </td>
@@ -894,6 +898,9 @@ export default function OccurrencesPage() {
                   />
                 </div>
               )}
+
+              {/* Protocol */}
+              <span className="font-mono text-sm font-semibold text-primary-base mb-1">#{occ.protocol}</span>
 
               {/* Status + Category row */}
               <div className="flex items-center gap-2 mb-2">

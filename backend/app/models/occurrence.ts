@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomBytes } from 'node:crypto'
 import { DateTime } from 'luxon'
 import { BaseModel, beforeCreate, belongsTo, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany, HasOne } from '@adonisjs/lucid/types/relations'
@@ -40,6 +40,9 @@ export default class Occurrence extends BaseModel {
   declare observation: string | null
 
   @column()
+  declare protocol: string
+
+  @column()
   declare status: 'em_analise' | 'aprovada' | 'cancelada' | 'concluida'
 
   @column.dateTime({ autoCreate: true })
@@ -71,5 +74,26 @@ export default class Occurrence extends BaseModel {
     if (!row.id) {
       row.id = randomUUID()
     }
+    if (!row.protocol) {
+      row.protocol = Occurrence.generateProtocol()
+    }
+  }
+
+  /**
+   * Generates a short, time-sortable, human-readable protocol.
+   * Format: EC{YYMM}-{5 alphanumeric} e.g. EC2605-A3K9M
+   * ~60M combinations per month — plenty for a city-scale system.
+   */
+  static generateProtocol(): string {
+    const now = new Date()
+    const yy = String(now.getFullYear()).slice(2)
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ' // no I, O (avoid confusion)
+    const bytes = randomBytes(5)
+    let rand = ''
+    for (let i = 0; i < 5; i++) {
+      rand += chars[bytes[i] % chars.length]
+    }
+    return `EC${yy}${mm}-${rand}`
   }
 }
