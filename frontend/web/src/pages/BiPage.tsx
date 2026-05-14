@@ -284,6 +284,7 @@ export default function BiPage() {
   const areasContainerRef = useRef<HTMLDivElement>(null)
   const areasCardRef = useRef<HTMLDivElement>(null)
   const areasMapRef = useRef<any>(null)
+  const areasLayerGroupRef = useRef<any>(null)
   const heatmapCardRef = useRef<HTMLDivElement>(null)
   const heatmapMapRef = useRef<any>(null)
   const heatLayerRef = useRef<any>(null)
@@ -469,15 +470,15 @@ export default function BiPage() {
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
       }).addTo(map)
+      areasLayerGroupRef.current = L.layerGroup().addTo(map)
       setTimeout(() => map.invalidateSize(), 200)
     }
 
     const map = areasMapRef.current
+    const layerGroup = areasLayerGroupRef.current
 
-    // Clear previous layers (keep tile layer)
-    map.eachLayer((layer: any) => {
-      if (layer._url === undefined && !layer._tiles) map.removeLayer(layer)
-    })
+    // Clear previous polygons/markers (tile layer untouched)
+    layerGroup.clearLayers()
 
     // Render polygons
     const allBounds: any[] = []
@@ -491,7 +492,7 @@ export default function BiPage() {
         weight: 2,
         fillColor: color,
         fillOpacity: 0.25,
-      }).addTo(map)
+      }).addTo(layerGroup)
 
       polygon.bindPopup(`
         <div style="font-family:Inter,system-ui,sans-serif;font-size:13px;min-width:160px">
@@ -512,7 +513,7 @@ export default function BiPage() {
       const color = STATUS_AREA_COLORS[area.status] || '#155B5B'
       L.circleMarker([c.lat, c.lng], {
         radius: 6, color, fillColor: color, fillOpacity: 0.5, weight: 1,
-      }).addTo(map).bindPopup(`<strong>#${area.protocol}</strong><br/>${area.neighborhood}`)
+      }).addTo(layerGroup).bindPopup(`<strong>#${area.protocol}</strong><br/>${area.neighborhood}`)
       allBounds.push([c.lat, c.lng])
     }
 
